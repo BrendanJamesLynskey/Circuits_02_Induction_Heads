@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuits 02 — In-context Learning &amp; Induction Heads</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-card: #0d1117;
+            --bg-code: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #76B900;
+            --accent-dim: #76B90044;
+            --accent-glow: #76B90033;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 900px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 17px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .hero > * { position: relative; z-index: 1; }
+        .series-label {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+        .hero h1 .accent { color: var(--accent); }
+        .hero .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin-bottom: 2rem;
+        }
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+        }
+        .tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+            white-space: nowrap;
+        }
+        .pipeline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+            max-width: var(--max-width);
+        }
+        .pipeline-step {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 0.3rem 0.7rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .pipeline-arrow { color: var(--accent); font-size: 0.9rem; font-weight: 700; }
+        .slide {
+            min-height: 100vh;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-dim);
+            position: absolute;
+            top: 2rem;
+            right: 1.5rem;
+            line-height: 1;
+            user-select: none;
+        }
+        .slide h2 {
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            line-height: 1.25;
+        }
+        .slide h3 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .slide p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .slide p strong { color: var(--text-primary); }
+        .slide ul, .slide ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--text-secondary); }
+        .slide li { margin-bottom: 0.4rem; }
+        .slide li strong { color: var(--text-primary); }
+        .slide code {
+            font-family: var(--font-mono);
+            font-size: 0.88em;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            padding: 0.05rem 0.35rem;
+            border-radius: 3px;
+            color: #c9d1d9;
+        }
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 1.25rem 0;
+            overflow: hidden;
+        }
+        .code-header {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .code-block pre { margin: 0; padding: 1rem; overflow-x: auto; }
+        .code-block code {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #c9d1d9;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+        .kw { color: #ff7b72; }
+        .fn { color: #d2a8ff; }
+        .str { color: #a5d6ff; }
+        .cm { color: #8b949e; font-style: italic; }
+        .num { color: #79c0ff; }
+        .type { color: #ffa657; }
+        .dir { color: #ff7b72; }
+        .mac { color: #ffa657; }
+        .table-wrap {
+            overflow-x: auto;
+            margin: 1.25rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th {
+            background: var(--bg-code);
+            color: var(--accent);
+            font-weight: 600;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-display);
+            white-space: nowrap;
+        }
+        td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: rgba(13, 17, 23, 0.5); }
+        .diagram-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .diagram-box {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
+        }
+        .diagram-box.accent { border-color: var(--accent); color: var(--accent); background: rgba(118, 185, 0, 0.08); }
+        .diagram-box.dim { color: var(--text-secondary); border-color: var(--border); }
+        .diagram-arrow { color: var(--accent); font-size: 1.3rem; font-weight: 700; }
+        .diagram-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .diagram-vertical .diagram-arrow { font-size: 1.1rem; }
+        .hierarchy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .hierarchy-level { display: flex; align-items: center; gap: 0.75rem; }
+        .hierarchy-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: right;
+        }
+        .hierarchy-items { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+        .hierarchy-item {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .hierarchy-item.accent { border-color: var(--accent); color: var(--accent); background: rgba(118, 185, 0, 0.08); }
+        .diagram-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .diagram-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .diagram-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .diagram-panel {
+            padding: 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+        .diagram-panel.accent-border { border-left: 3px solid var(--accent); }
+        .diagram-panel h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+        .diagram-panel p, .diagram-panel ul { font-size: 0.85rem; }
+        .callout {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+        .callout p { margin-bottom: 0; }
+        .callout p + p { margin-top: 0.5rem; }
+        .callout .callout-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+        .contents-list { list-style: none; padding-left: 0; counter-reset: contents; }
+        .contents-list li {
+            counter-increment: contents;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .contents-list li:last-child { border-bottom: none; }
+        .contents-list li::before {
+            content: counter(contents, decimal-leading-zero);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 2rem;
+        }
+        .contents-list a { color: var(--text-primary); text-decoration: none; transition: color 0.2s; }
+        .contents-list a:hover { color: var(--accent); }
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .canvas-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.25rem 0;
+            overflow-x: auto;
+        }
+        .canvas-wrap canvas, .canvas-wrap svg { display: block; margin: 0 auto; max-width: 100%; }
+        .badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: middle;
+            margin-left: 0.3rem;
+        }
+        .badge.ok    { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .badge.warn  { border-color: #ffa657; color: #ffa657; background: rgba(255,166,87,0.08); }
+        .badge.bad   { border-color: #ff7b72; color: #ff7b72; background: rgba(255,123,114,0.08); }
+        @media (max-width: 640px) {
+            .slide { padding: 3rem 1rem; min-height: auto; }
+            .slide-number { font-size: 3rem; top: 1.5rem; right: 1rem; }
+            .slide h2 { font-size: 1.5rem; }
+            .diagram-grid.cols-2, .diagram-grid.cols-3 { grid-template-columns: 1fr; }
+            .pipeline { gap: 0.15rem; }
+            .pipeline-step { font-size: 0.6rem; padding: 0.2rem 0.4rem; }
+            .hero h1 { font-size: 1.8rem; }
+            table { font-size: 0.78rem; }
+        }
+    </style>
+</head>
+<body>
+<header class="hero">
+    <div class="series-label">Transformer Circuits Thread &mdash; Presentation 02</div>
+    <h1>In-context Learning &amp; <span class="accent">Induction Heads</span></h1>
+    <p class="subtitle">A small two-layer circuit that copies "what came next last time" turns out to be the engine behind few-shot prompting &mdash; and it switches on in a single sharp phase change during training.</p>
+    <div class="tags">
+        <span class="tag">Induction Heads</span>
+        <span class="tag">In-Context Learning</span>
+        <span class="tag">Prefix Matching</span>
+        <span class="tag">Phase Change</span>
+        <span class="tag">Ablation</span>
+        <span class="tag">Emergence</span>
+    </div>
+    <div class="pipeline">
+        <span class="pipeline-step">Prev-token head</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Prefix match</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Copy [B]</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Phase change</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">In-context learning</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>What This Paper Shows</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">Recap &mdash; what an induction head is</a></li>
+        <li><a href="#slide-02">The mechanism &mdash; prefix match then copy</a></li>
+        <li><a href="#slide-03">The phase change &mdash; a kink in the loss curve</a></li>
+        <li><a href="#slide-04">Six lines of evidence &mdash; rigorous to circumstantial</a></li>
+        <li><a href="#slide-05">Generalization &mdash; "do the analogous thing"</a></li>
+        <li><a href="#slide-06">Why it matters to an engineer</a></li>
+        <li><a href="#slide-07">What to Take Away</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>Recap: What Is an Induction Head?</h2>
+    <p style="font-family:var(--font-mono);font-size:0.85rem;">Olsson, Elhage, Nanda, Joseph, DasSarma, Henighan et al. &mdash; Anthropic &mdash; March 2022 <span class="badge ok">Transformer Circuits</span> <span class="badge">transformer-circuits.pub</span></p>
+    <h3>The problem</h3>
+    <p>Presentation 01's <em>Mathematical Framework</em> showed that two-layer attention-only transformers contain a specific, identifiable circuit: the <strong>induction head</strong>. This paper takes that toy-model object and asks the much bigger question: <strong>is this little circuit actually responsible for in-context learning in real, large models?</strong></p>
+    <h3>The contribution</h3>
+    <p>An induction head implements a simple, almost algorithmic rule on a repeated sequence. Given context <code>&hellip; [A][B] &hellip; [A]</code> &mdash; where the current token is a second occurrence of <code>[A]</code> &mdash; it predicts <code>[B]</code>: "the last time I saw this token, what came next? Predict that again." It does this in two steps that two attention heads in adjacent layers compose to perform:</p>
+    <ul>
+        <li><strong>Prefix matching</strong>: the head attends back to earlier tokens that were <em>preceded</em> by the current token (or recent tokens) &mdash; i.e. it finds the previous <code>[A]</code> and looks at the token after it.</li>
+        <li><strong>Copying</strong>: it then increases the logit of that attended-to token, raising <code>[B]</code>'s probability of being emitted next.</li>
+    </ul>
+    <p>Crucially this needs <strong>two layers</strong>. A "previous-token head" in layer 1 writes each token's predecessor into the residual stream; the induction head in layer 2 uses that to match on prefixes. One-layer models cannot form induction heads at all &mdash; the composition is structurally impossible.</p>
+    <div class="callout">
+        <div class="callout-label">The insight</div>
+        <p>An induction head is not pattern-matching against a stored table of n-grams. It <strong>decouples</strong> the matching token <code>[A]</code> from the copied token <code>[B]</code>, so it can complete patterns it has never seen during training &mdash; including on random, out-of-distribution sequences. That generality is the whole reason it can power in-context learning rather than mere memorization.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>The Mechanism: Prefix Match, Then Copy</h2>
+    <p>Trace the circuit on the sequence below. The model is at the second <code>[A]</code> and must predict the next token. The previous-token head has already tagged each position with its predecessor; the induction head uses those tags to find where <code>[A]</code> last appeared and copy what followed.</p>
+    <div class="canvas-wrap">
+        <svg viewBox="0 0 720 280" width="720" height="280" xmlns="http://www.w3.org/2000/svg">
+            <style>
+                .ih-tok { fill: #161b22; stroke: #21262d; stroke-width: 1; }
+                .ih-acc { fill: rgba(118,185,0,0.08); stroke: #76B900; stroke-width: 1.5; }
+                .ih-lbl { fill: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-anchor: middle; }
+                .ih-acclbl { fill: #76B900; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-anchor: middle; font-weight: 700; }
+                .ih-sub { fill: #8b949e; font-family: 'JetBrains Mono', monospace; font-size: 10px; text-anchor: middle; }
+                .ih-ttl { fill: #76B900; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; }
+                .ih-match { stroke: #76B900; stroke-width: 2; fill: none; marker-end: url(#ihm); }
+                .ih-copy { stroke: #ffa657; stroke-width: 2; fill: none; stroke-dasharray: 5 3; marker-end: url(#ihc); }
+            </style>
+            <defs>
+                <marker id="ihm" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#76B900"/></marker>
+                <marker id="ihc" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffa657"/></marker>
+            </defs>
+            <text x="10" y="20" class="ih-ttl">[A][B] &hellip; [A] &rarr; predict [B]</text>
+            <!-- token row -->
+            <rect x="40"  y="120" width="60" height="40" class="ih-acc" rx="6"/><text x="70"  y="145" class="ih-acclbl">[A]</text>
+            <rect x="115" y="120" width="60" height="40" class="ih-tok" rx="6"/><text x="145" y="145" class="ih-lbl">[B]</text>
+            <rect x="190" y="120" width="60" height="40" class="ih-tok" rx="6"/><text x="220" y="145" class="ih-lbl">[C]</text>
+            <rect x="265" y="120" width="60" height="40" class="ih-tok" rx="6"/><text x="295" y="145" class="ih-lbl">[D]</text>
+            <rect x="340" y="120" width="60" height="40" class="ih-tok" rx="6"/><text x="370" y="145" class="ih-lbl">&hellip;</text>
+            <rect x="415" y="120" width="60" height="40" class="ih-acc" rx="6"/><text x="445" y="145" class="ih-acclbl">[A]</text>
+            <rect x="520" y="120" width="120" height="40" class="ih-tok" rx="6" stroke-dasharray="4 3"/><text x="580" y="145" class="ih-lbl">predict ?</text>
+            <text x="445" y="178" class="ih-sub">current token</text>
+            <text x="70"  y="112" class="ih-sub">earlier copy</text>
+            <!-- prefix match: current [A] attends back to first [A] -->
+            <path d="M 420 118 C 320 60, 160 60, 75 118" class="ih-match"/>
+            <text x="245" y="58" class="ih-ttl">1. prefix match: find prior [A]</text>
+            <!-- copy: the token AFTER first [A], i.e. [B], gets copied to output -->
+            <path d="M 145 162 C 300 240, 480 240, 575 162" class="ih-copy"/>
+            <text x="360" y="262" fill="#ffa657" font-family="'Space Grotesk',sans-serif" font-weight="600" font-size="12" text-anchor="middle">2. copy: raise the logit of [B] (what followed [A] last time)</text>
+        </svg>
+    </div>
+    <p>The same idea, written as the two composed heads in residual-stream terms:</p>
+    <div class="diagram-flow">
+        <div class="diagram-box dim">token <code>t</code></div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box">L1: prev-token head<br><small>writes token t&minus;1</small></div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box accent">L2: induction head<br><small>match on prefix</small></div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box accent">copy &amp; boost logit<br><small>of [B]</small></div>
+    </div>
+    <div class="callout">
+        <div class="callout-label">The mechanism</div>
+        <p>A head qualifies as an induction head if it does <strong>both</strong> things: <em>prefix matching</em> (attend to tokens that were followed by the current/recent token) and <em>copying</em> (increase the logit of the attended-to token). The authors characterised this behaviour across <strong>34 transformers</strong> using more than <strong>50,000 attention-head ablations</strong> &mdash; this is a measured, mechanistic claim, not a metaphor.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>The Phase Change: A Kink in the Loss Curve</h2>
+    <h3>The observation</h3>
+    <p>Induction heads do not fade in gradually. Early in training &mdash; in every transformer with more than one layer, of any size &mdash; there is a narrow window where induction heads <strong>abruptly crystallise</strong>. Three things happen at once in that window: a visible <strong>bump / kink appears in the training loss curve</strong>, induction heads form, and the model's <strong>in-context learning ability jumps sharply</strong>.</p>
+    <h3>Measuring it: the in-context learning score</h3>
+    <p>To quantify in-context learning, the authors define a simple heuristic. Take the loss on the <strong>500th token</strong> in a context and subtract the loss on the <strong>50th token</strong>, averaged over examples. If a model uses earlier context to predict later tokens better, this difference is large and negative. The indices 50 and 500 are "somewhat arbitrary" &mdash; just an early vs late probe. This score improves abruptly exactly at the phase change.</p>
+    <div class="canvas-wrap">
+        <svg viewBox="0 0 720 300" width="720" height="300" xmlns="http://www.w3.org/2000/svg">
+            <style>
+                .pc-ax { stroke: #21262d; stroke-width: 1; }
+                .pc-lbl { fill: #8b949e; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+                .pc-ttl { fill: #76B900; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; }
+                .pc-loss { stroke: #76B900; stroke-width: 2.5; fill: none; }
+                .pc-icl { stroke: #ffa657; stroke-width: 2.5; fill: none; }
+                .pc-band { fill: rgba(118,185,0,0.10); }
+                .pc-dash { stroke: #8b949e; stroke-width: 1; stroke-dasharray: 4 3; }
+            </style>
+            <text x="10" y="18" class="pc-ttl">Training loss (green) and in-context learning score (orange) vs training step</text>
+            <!-- phase-change band -->
+            <rect x="225" y="40" width="55" height="200" class="pc-band"/>
+            <line x1="252" y1="40" x2="252" y2="240" class="pc-dash"/>
+            <text x="252" y="34" class="pc-lbl" text-anchor="middle">phase change</text>
+            <!-- axes -->
+            <line x1="70" y1="40"  x2="70"  y2="240" class="pc-ax"/>
+            <line x1="70" y1="240" x2="670" y2="240" class="pc-ax"/>
+            <text x="20" y="50"  class="pc-lbl">loss</text>
+            <text x="560" y="262" class="pc-lbl">training step (log)</text>
+            <!-- loss curve: smooth descent with a visible bump/kink at the band -->
+            <path d="M 80 70 C 150 110, 200 130, 225 138 C 240 143, 245 150, 252 146 C 262 140, 270 158, 290 165 C 360 195, 500 215, 660 228" class="pc-loss"/>
+            <text x="300" y="128" fill="#76B900" font-family="'JetBrains Mono',monospace" font-size="10">bump / kink</text>
+            <!-- ICL score: flat then sharp drop (improvement) at the band -->
+            <path d="M 80 95 L 225 98 C 240 99, 248 100, 252 120 C 258 150, 270 175, 300 183 C 380 198, 520 205, 660 208" class="pc-icl"/>
+            <text x="95" y="90"  fill="#ffa657" font-family="'JetBrains Mono',monospace" font-size="10">ICL score flat&hellip;</text>
+            <text x="330" y="200" fill="#ffa657" font-family="'JetBrains Mono',monospace" font-size="10">&hellip;then jumps (improves)</text>
+            <text x="80" y="258" class="pc-lbl">L(500th) &minus; L(50th) = in-context learning score</text>
+        </svg>
+    </div>
+    <div class="callout">
+        <div class="callout-label">Why it matters</div>
+        <p>This is a clean, concrete example of a capability emerging via a <strong>discrete circuit forming</strong>, not a smooth slide down a loss curve. The synchronised timing &mdash; loss kink, induction-head formation, ICL jump &mdash; is the paper's first and most visible argument that the three are causally linked. It also makes the phase change a candidate <strong>early-warning signal</strong> for capability emergence, which is why it is of interest to safety.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Six Lines of Evidence: Rigorous to Circumstantial</h2>
+    <p>No single experiment proves that induction heads cause in-context learning, so the paper stacks <strong>six independent arguments</strong>. The first five are rigorous in small attention-only models; the sixth is the circumstantial bridge that extends the story to large models.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>#</th><th>Argument</th><th>What it shows</th><th>Strength</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>Macroscopic co-occurrence</td><td>The phase change, induction-head formation and the ICL-score jump all happen in the same window.</td><td><span class="badge ok">rigorous (small)</span></td></tr>
+                <tr><td>2</td><td>Macroscopic co-perturbation</td><td>Architecture tweaks that shift <em>when</em> induction heads can form shift the loss kink and ICL jump by the same amount.</td><td><span class="badge ok">rigorous (small)</span></td></tr>
+                <tr><td>3</td><td>Direct ablation</td><td>Knocking out induction heads at test time significantly reduces in-context learning.</td><td><span class="badge ok">rigorous (small)</span></td></tr>
+                <tr><td>4</td><td>Examples of generality</td><td>The same heads defined for literal copying empirically do translation, pattern-matching and abstract tasks.</td><td><span class="badge warn">suggestive</span></td></tr>
+                <tr><td>5</td><td>Mechanistic plausibility</td><td>In small models the circuit is transparent and extends naturally to richer ICL by reuse.</td><td><span class="badge warn">suggestive</span></td></tr>
+                <tr><td>6</td><td>Continuity</td><td>Metrics tied to induction heads and to ICL vary smoothly from small to large models.</td><td><span class="badge bad">circumstantial (large)</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p>The honest framing matters: arguments 1&ndash;3 establish <em>causation</em> in small attention-only models where the circuit can be fully dissected; arguments 4&ndash;6 carry the claim toward large models without ever fully closing it. Where they cannot dissect a large model, they show that its behaviour lies on the <em>same continuum</em> as the small ones they can.</p>
+    <div class="callout">
+        <div class="callout-label">Caveat</div>
+        <p>The authors are explicit that this is "only the beginnings of evidence" and that "a large number of subtle confounds or alternative hypotheses are possible." The strong claim &mdash; induction heads are the <strong>majority</strong> mechanism of in-context learning in <em>large</em> models &mdash; remains a hypothesis supported by converging evidence, not a closed proof.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Generalization: "Do the Analogous Thing"</h2>
+    <p>If induction heads only copied exact repeats, they could not explain most in-context learning. The key finding is that the <em>same</em> heads, defined narrowly on literal copying, empirically implement a far more abstract operation: <strong>fuzzy, nearest-neighbour pattern completion</strong>, written <code>[A*][B*] &hellip; [A] &rarr; [B]</code> where <code>A* &asymp; A</code> and <code>B* &asymp; B</code>.</p>
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Literal copy</h4>
+            <p><code>[A][B] &hellip; [A] &rarr; [B]</code></p>
+            <p>Exact repetition. The defining behaviour &mdash; and the easy case to verify mechanistically.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Fuzzy / soft induction</h4>
+            <p><code>[A*][B*] &hellip; [A] &rarr; [B]</code></p>
+            <p>Match on tokens that are merely <em>similar</em>, not identical. Nearest-neighbour completion over the embedding space.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Abstract / translation</h4>
+            <p><code>chat&nbsp;cat &hellip; chien&nbsp;&rarr;&nbsp;dog</code></p>
+            <p>The analogy generalises across languages and tasks &mdash; translation, pattern completion, "continue this structure."</p>
+        </div>
+    </div>
+    <p>Because the circuit <strong>decouples</strong> the matched token from the copied token, it never collapses into a fixed n-gram table. That decoupling is what lets it operate on novel and out-of-distribution sequences, and what makes "increase the probability of the analogous continuation" a plausible description of what a large fraction of attention heads are doing when you give a model examples in its prompt.</p>
+    <div class="callout">
+        <div class="callout-label">The insight</div>
+        <p>The narrow definition ("literal copy") and the broad behaviour ("do the analogous thing") are the <strong>same heads</strong>. That is precisely why the authors find it plausible that induction heads explain not just clever sequence-copying but the bulk of few-shot, in-context learning &mdash; the abstract version is the literal version run on soft, similarity-based matches.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>Why It Matters to a Practising Engineer</h2>
+    <p>This paper is the mechanistic answer to a question you rely on every day without thinking about it: <strong>why does putting examples in a prompt work at all?</strong></p>
+    <ul>
+        <li><strong>Few-shot prompting has a circuit.</strong> When you paste worked examples into a prompt, you are feeding the <code>[A][B] &hellip; [A]</code> structure that induction heads consume. "The model learns from the examples" is, mechanistically, induction heads doing soft prefix-match-and-copy in a single forward pass &mdash; no weights change.</li>
+        <li><strong>Long contexts help for a reason.</strong> The in-context learning score &mdash; later tokens predicted better than early ones &mdash; is the measurable footprint of the model exploiting what is already in the window. More relevant context literally gives induction heads more to match against.</li>
+        <li><strong>Capabilities can appear discretely.</strong> The phase change is a worked example of an ability switching on over a narrow training window rather than emerging smoothly. When you see a "sudden" new capability at scale, a discrete circuit forming is a real candidate explanation.</li>
+        <li><strong>Interpretability is becoming measurable.</strong> 34 models, 50,000+ ablations, a clean scalar score &mdash; this is mechanistic interpretability done at the scale and rigour of an engineering result, not a thought experiment.</li>
+    </ul>
+    <div class="callout">
+        <div class="callout-label">Why it matters</div>
+        <p>The next time a prompt "just works" because you added two good examples, you now know the name of the thing doing the work, what shape of input it needs, and the single training event that gave the model the ability in the first place.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>What to Take Away</h2>
+    <ul>
+        <li><strong>Induction heads are a concrete two-layer circuit:</strong> a previous-token head plus a head that does prefix matching then copying, completing <code>[A][B] &hellip; [A] &rarr; [B]</code>. They require more than one layer to exist.</li>
+        <li><strong>The central hypothesis:</strong> induction heads are the primary mechanism behind in-context learning &mdash; not just in toy models, but plausibly the majority of ICL in transformers of all sizes.</li>
+        <li><strong>The phase change is real and sharp:</strong> a narrow training window where induction heads form, a bump/kink appears in the loss, and the in-context learning score (loss at token 500 minus token 50) jumps &mdash; all at once.</li>
+        <li><strong>The case is built from six converging arguments,</strong> rigorous via ablation and co-perturbation in small attention-only models, circumstantial (continuity) in large ones &mdash; and the authors are candid about the remaining gap.</li>
+        <li><strong>Induction heads generalise</strong> from literal copying to fuzzy matching, soft induction, translation and pattern completion &mdash; an abstract "do the analogous thing" operation, enabled by decoupling the matched token from the copied one.</li>
+        <li><strong>For engineers,</strong> this is the mechanistic story of why few-shot prompting and long contexts work, and a clean case study in capabilities emerging via discrete circuits.</li>
+    </ul>
+    <div class="callout">
+        <div class="callout-label">Where to next</div>
+        <p>Induction heads are clean because each head does roughly one thing. But real models pack far more features than they have neurons &mdash; individual neurons fire for many unrelated concepts. <strong>Presentation 03 &mdash; Toy Models of Superposition</strong> explains how networks cram more features than dimensions into the same activations, why that produces polysemantic neurons, and what it means for ever cleanly reading a model's internals.</p>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>Part of <a href="https://github.com/BrendanJamesLynskey/LLM_Hub_Transformer_Circuits">The Transformer Circuits Thread series</a> &mdash; Anthropic's mechanistic interpretability research, for engineers.</p>
+    <p style="margin-top:0.5rem;font-size:0.8rem;"><a href="https://github.com/BrendanJamesLynskey/LLM_Hub_Transformer_Circuits">Back to Series Index</a></p>
+</footer>
+<script>
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.slide').forEach(slide => {
+        slide.style.opacity = '0';
+        slide.style.transform = 'translateY(30px)';
+        slide.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(slide);
+    });
+</script>
+</body>
+</html>
