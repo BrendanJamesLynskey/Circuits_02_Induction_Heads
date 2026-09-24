@@ -9,15 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-card: #0d1117;
-            --bg-code: #161b22;
-            --text-primary: #e6edf3;
-            --text-secondary: #8b949e;
-            --accent: #76B900;
-            --accent-dim: #76B90044;
-            --accent-glow: #76B90033;
-            --border: #21262d;
+            --bg-primary: #1f1622;
+            --bg-card: #261b29;
+            --bg-code: #2e2231;
+            --text-primary: #f2ebe7;
+            --text-secondary: #aa9ba9;
+            --accent: #98b47e;
+            --accent-dim: #98b47e44;
+            --accent-glow: #98b47e33;
+            --border: #3e3042;
             --font-display: 'Space Grotesk', sans-serif;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
             --font-body: 'Inter', sans-serif;
@@ -165,7 +165,7 @@
             border: 1px solid var(--border);
             padding: 0.05rem 0.35rem;
             border-radius: 3px;
-            color: #c9d1d9;
+            color: #ddd3d6;
         }
         .code-block {
             background: var(--bg-code);
@@ -178,7 +178,7 @@
             font-family: var(--font-mono);
             font-size: 0.75rem;
             color: var(--accent);
-            background: rgba(118, 185, 0, 0.08);
+            background: rgba(152,180,126,0.08);
             padding: 0.4rem 1rem;
             border-bottom: 1px solid var(--border);
         }
@@ -187,19 +187,19 @@
             font-family: var(--font-mono);
             font-size: 0.85rem;
             line-height: 1.6;
-            color: #c9d1d9;
+            color: #ddd3d6;
             background: transparent;
             border: none;
             padding: 0;
         }
-        .kw { color: #ff7b72; }
-        .fn { color: #d2a8ff; }
-        .str { color: #a5d6ff; }
-        .cm { color: #8b949e; font-style: italic; }
-        .num { color: #79c0ff; }
-        .type { color: #ffa657; }
-        .dir { color: #ff7b72; }
-        .mac { color: #ffa657; }
+        .kw { color: #e5816f; }
+        .fn { color: #e1b7e7; }
+        .str { color: #cad8e8; }
+        .cm { color: #aa9ba9; font-style: italic; }
+        .num { color: #aec7e1; }
+        .type { color: #dfb774; }
+        .dir { color: #e5816f; }
+        .mac { color: #dfb774; }
         .table-wrap {
             overflow-x: auto;
             margin: 1.25rem 0;
@@ -223,7 +223,7 @@
             color: var(--text-secondary);
         }
         tr:last-child td { border-bottom: none; }
-        tr:nth-child(even) td { background: rgba(13, 17, 23, 0.5); }
+        tr:nth-child(even) td { background: rgba(38,27,41,0.5); }
         .diagram-flow {
             display: flex;
             flex-wrap: wrap;
@@ -247,7 +247,7 @@
             text-align: center;
             white-space: nowrap;
         }
-        .diagram-box.accent { border-color: var(--accent); color: var(--accent); background: rgba(118, 185, 0, 0.08); }
+        .diagram-box.accent { border-color: var(--accent); color: var(--accent); background: rgba(152,180,126,0.08); }
         .diagram-box.dim { color: var(--text-secondary); border-color: var(--border); }
         .diagram-arrow { color: var(--accent); font-size: 1.3rem; font-weight: 700; }
         .diagram-vertical {
@@ -290,7 +290,7 @@
             border: 1px solid var(--border);
             color: var(--text-secondary);
         }
-        .hierarchy-item.accent { border-color: var(--accent); color: var(--accent); background: rgba(118, 185, 0, 0.08); }
+        .hierarchy-item.accent { border-color: var(--accent); color: var(--accent); background: rgba(152,180,126,0.08); }
         .diagram-grid {
             display: grid;
             gap: 0.75rem;
@@ -384,8 +384,8 @@
             margin-left: 0.3rem;
         }
         .badge.ok    { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-        .badge.warn  { border-color: #ffa657; color: #ffa657; background: rgba(255,166,87,0.08); }
-        .badge.bad   { border-color: #ff7b72; color: #ff7b72; background: rgba(255,123,114,0.08); }
+        .badge.warn  { border-color: #dfb774; color: #dfb774; background: rgba(223,183,116,0.08); }
+        .badge.bad   { border-color: #e5816f; color: #e5816f; background: rgba(229,129,111,0.08); }
         @media (max-width: 640px) {
             .slide { padding: 3rem 1rem; min-height: auto; }
             .slide-number { font-size: 3rem; top: 1.5rem; right: 1rem; }
@@ -464,18 +464,18 @@
     <div class="canvas-wrap">
         <svg viewBox="0 0 720 280" width="720" height="280" xmlns="http://www.w3.org/2000/svg">
             <style>
-                .ih-tok { fill: #161b22; stroke: #21262d; stroke-width: 1; }
-                .ih-acc { fill: rgba(118,185,0,0.08); stroke: #76B900; stroke-width: 1.5; }
-                .ih-lbl { fill: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-anchor: middle; }
-                .ih-acclbl { fill: #76B900; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-anchor: middle; font-weight: 700; }
-                .ih-sub { fill: #8b949e; font-family: 'JetBrains Mono', monospace; font-size: 10px; text-anchor: middle; }
-                .ih-ttl { fill: #76B900; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; }
-                .ih-match { stroke: #76B900; stroke-width: 2; fill: none; marker-end: url(#ihm); }
-                .ih-copy { stroke: #ffa657; stroke-width: 2; fill: none; stroke-dasharray: 5 3; marker-end: url(#ihc); }
+                .ih-tok { fill: #2e2231; stroke: #3e3042; stroke-width: 1; }
+                .ih-acc { fill: rgba(152,180,126,0.08); stroke: #98b47e; stroke-width: 1.5; }
+                .ih-lbl { fill: #f2ebe7; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-anchor: middle; }
+                .ih-acclbl { fill: #98b47e; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-anchor: middle; font-weight: 700; }
+                .ih-sub { fill: #aa9ba9; font-family: 'JetBrains Mono', monospace; font-size: 10px; text-anchor: middle; }
+                .ih-ttl { fill: #98b47e; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; }
+                .ih-match { stroke: #98b47e; stroke-width: 2; fill: none; marker-end: url(#ihm); }
+                .ih-copy { stroke: #dfb774; stroke-width: 2; fill: none; stroke-dasharray: 5 3; marker-end: url(#ihc); }
             </style>
             <defs>
-                <marker id="ihm" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#76B900"/></marker>
-                <marker id="ihc" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffa657"/></marker>
+                <marker id="ihm" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#98b47e"/></marker>
+                <marker id="ihc" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#dfb774"/></marker>
             </defs>
             <text x="10" y="20" class="ih-ttl">[A][B] &hellip; [A] &rarr; predict [B]</text>
             <!-- token row -->
@@ -493,7 +493,7 @@
             <text x="245" y="58" class="ih-ttl">1. prefix match: find prior [A]</text>
             <!-- copy: the token AFTER first [A], i.e. [B], gets copied to output -->
             <path d="M 145 162 C 300 240, 480 240, 575 162" class="ih-copy"/>
-            <text x="360" y="262" fill="#ffa657" font-family="'Space Grotesk',sans-serif" font-weight="600" font-size="12" text-anchor="middle">2. copy: raise the logit of [B] (what followed [A] last time)</text>
+            <text x="360" y="262" fill="#dfb774" font-family="'Space Grotesk',sans-serif" font-weight="600" font-size="12" text-anchor="middle">2. copy: raise the logit of [B] (what followed [A] last time)</text>
         </svg>
     </div>
     <p>The same idea, written as the two composed heads in residual-stream terms:</p>
@@ -522,13 +522,13 @@
     <div class="canvas-wrap">
         <svg viewBox="0 0 720 300" width="720" height="300" xmlns="http://www.w3.org/2000/svg">
             <style>
-                .pc-ax { stroke: #21262d; stroke-width: 1; }
-                .pc-lbl { fill: #8b949e; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-                .pc-ttl { fill: #76B900; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; }
-                .pc-loss { stroke: #76B900; stroke-width: 2.5; fill: none; }
-                .pc-icl { stroke: #ffa657; stroke-width: 2.5; fill: none; }
-                .pc-band { fill: rgba(118,185,0,0.10); }
-                .pc-dash { stroke: #8b949e; stroke-width: 1; stroke-dasharray: 4 3; }
+                .pc-ax { stroke: #3e3042; stroke-width: 1; }
+                .pc-lbl { fill: #aa9ba9; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+                .pc-ttl { fill: #98b47e; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; }
+                .pc-loss { stroke: #98b47e; stroke-width: 2.5; fill: none; }
+                .pc-icl { stroke: #dfb774; stroke-width: 2.5; fill: none; }
+                .pc-band { fill: rgba(152,180,126,0.10); }
+                .pc-dash { stroke: #aa9ba9; stroke-width: 1; stroke-dasharray: 4 3; }
             </style>
             <text x="10" y="18" class="pc-ttl">Training loss (green) and in-context learning score (orange) vs training step</text>
             <!-- phase-change band -->
@@ -542,11 +542,11 @@
             <text x="560" y="262" class="pc-lbl">training step (log)</text>
             <!-- loss curve: smooth descent with a visible bump/kink at the band -->
             <path d="M 80 70 C 150 110, 200 130, 225 138 C 240 143, 245 150, 252 146 C 262 140, 270 158, 290 165 C 360 195, 500 215, 660 228" class="pc-loss"/>
-            <text x="300" y="128" fill="#76B900" font-family="'JetBrains Mono',monospace" font-size="10">bump / kink</text>
+            <text x="300" y="128" fill="#98b47e" font-family="'JetBrains Mono',monospace" font-size="10">bump / kink</text>
             <!-- ICL score: flat then sharp drop (improvement) at the band -->
             <path d="M 80 95 L 225 98 C 240 99, 248 100, 252 120 C 258 150, 270 175, 300 183 C 380 198, 520 205, 660 208" class="pc-icl"/>
-            <text x="95" y="90"  fill="#ffa657" font-family="'JetBrains Mono',monospace" font-size="10">ICL score flat&hellip;</text>
-            <text x="330" y="200" fill="#ffa657" font-family="'JetBrains Mono',monospace" font-size="10">&hellip;then jumps (improves)</text>
+            <text x="95" y="90"  fill="#dfb774" font-family="'JetBrains Mono',monospace" font-size="10">ICL score flat&hellip;</text>
+            <text x="330" y="200" fill="#dfb774" font-family="'JetBrains Mono',monospace" font-size="10">&hellip;then jumps (improves)</text>
             <text x="80" y="258" class="pc-lbl">L(500th) &minus; L(50th) = in-context learning score</text>
         </svg>
     </div>
