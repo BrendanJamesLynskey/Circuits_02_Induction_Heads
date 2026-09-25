@@ -6,7 +6,7 @@
     <title>Circuits 02 — In-context Learning &amp; Induction Heads</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Karla:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&family=Fragment+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #1f1622;
@@ -18,9 +18,9 @@
             --accent-dim: #98b47e44;
             --accent-glow: #98b47e33;
             --border: #3e3042;
-            --font-display: 'Space Grotesk', sans-serif;
-            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-            --font-body: 'Inter', sans-serif;
+            --font-display: 'Bodoni Moda', sans-serif;
+            --font-mono: 'Fragment Mono', 'Fragment Mono', monospace;
+            --font-body: 'Karla', sans-serif;
             --max-width: 900px;
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -397,6 +397,7 @@
             table { font-size: 0.78rem; }
         }
     </style>
+<style>:root{font-synthesis-weight:none}</style>
 </head>
 <body>
 <header class="hero">
@@ -466,10 +467,10 @@
             <style>
                 .ih-tok { fill: #2e2231; stroke: #3e3042; stroke-width: 1; }
                 .ih-acc { fill: rgba(152,180,126,0.08); stroke: #98b47e; stroke-width: 1.5; }
-                .ih-lbl { fill: #f2ebe7; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-anchor: middle; }
-                .ih-acclbl { fill: #98b47e; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-anchor: middle; font-weight: 700; }
-                .ih-sub { fill: #aa9ba9; font-family: 'JetBrains Mono', monospace; font-size: 10px; text-anchor: middle; }
-                .ih-ttl { fill: #98b47e; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; }
+                .ih-lbl { fill: #f2ebe7; font-family: 'Fragment Mono', monospace; font-size: 14px; text-anchor: middle; }
+                .ih-acclbl { fill: #98b47e; font-family: 'Fragment Mono', monospace; font-size: 14px; text-anchor: middle; font-weight: 700; }
+                .ih-sub { fill: #aa9ba9; font-family: 'Fragment Mono', monospace; font-size: 10px; text-anchor: middle; }
+                .ih-ttl { fill: #98b47e; font-family: 'Bodoni Moda', sans-serif; font-weight: 600; font-size: 12px; }
                 .ih-match { stroke: #98b47e; stroke-width: 2; fill: none; marker-end: url(#ihm); }
                 .ih-copy { stroke: #dfb774; stroke-width: 2; fill: none; stroke-dasharray: 5 3; marker-end: url(#ihc); }
             </style>
@@ -493,7 +494,7 @@
             <text x="245" y="58" class="ih-ttl">1. prefix match: find prior [A]</text>
             <!-- copy: the token AFTER first [A], i.e. [B], gets copied to output -->
             <path d="M 145 162 C 300 240, 480 240, 575 162" class="ih-copy"/>
-            <text x="360" y="262" fill="#dfb774" font-family="'Space Grotesk',sans-serif" font-weight="600" font-size="12" text-anchor="middle">2. copy: raise the logit of [B] (what followed [A] last time)</text>
+            <text x="360" y="262" fill="#dfb774" font-family="'Bodoni Moda',sans-serif" font-weight="600" font-size="12" text-anchor="middle">2. copy: raise the logit of [B] (what followed [A] last time)</text>
         </svg>
     </div>
     <p>The same idea, written as the two composed heads in residual-stream terms:</p>
@@ -523,8 +524,8 @@
         <svg viewBox="0 0 720 300" width="720" height="300" xmlns="http://www.w3.org/2000/svg">
             <style>
                 .pc-ax { stroke: #3e3042; stroke-width: 1; }
-                .pc-lbl { fill: #aa9ba9; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-                .pc-ttl { fill: #98b47e; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; }
+                .pc-lbl { fill: #aa9ba9; font-family: 'Fragment Mono', monospace; font-size: 11px; }
+                .pc-ttl { fill: #98b47e; font-family: 'Bodoni Moda', sans-serif; font-weight: 600; font-size: 12px; }
                 .pc-loss { stroke: #98b47e; stroke-width: 2.5; fill: none; }
                 .pc-icl { stroke: #dfb774; stroke-width: 2.5; fill: none; }
                 .pc-band { fill: rgba(152,180,126,0.10); }
@@ -542,11 +543,11 @@
             <text x="560" y="262" class="pc-lbl">training step (log)</text>
             <!-- loss curve: smooth descent with a visible bump/kink at the band -->
             <path d="M 80 70 C 150 110, 200 130, 225 138 C 240 143, 245 150, 252 146 C 262 140, 270 158, 290 165 C 360 195, 500 215, 660 228" class="pc-loss"/>
-            <text x="300" y="128" fill="#98b47e" font-family="'JetBrains Mono',monospace" font-size="10">bump / kink</text>
+            <text x="300" y="128" fill="#98b47e" font-family="'Fragment Mono',monospace" font-size="10">bump / kink</text>
             <!-- ICL score: flat then sharp drop (improvement) at the band -->
             <path d="M 80 95 L 225 98 C 240 99, 248 100, 252 120 C 258 150, 270 175, 300 183 C 380 198, 520 205, 660 208" class="pc-icl"/>
-            <text x="95" y="90"  fill="#dfb774" font-family="'JetBrains Mono',monospace" font-size="10">ICL score flat&hellip;</text>
-            <text x="330" y="200" fill="#dfb774" font-family="'JetBrains Mono',monospace" font-size="10">&hellip;then jumps (improves)</text>
+            <text x="95" y="90"  fill="#dfb774" font-family="'Fragment Mono',monospace" font-size="10">ICL score flat&hellip;</text>
+            <text x="330" y="200" fill="#dfb774" font-family="'Fragment Mono',monospace" font-size="10">&hellip;then jumps (improves)</text>
             <text x="80" y="258" class="pc-lbl">L(500th) &minus; L(50th) = in-context learning score</text>
         </svg>
     </div>
